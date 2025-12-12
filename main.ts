@@ -154,7 +154,7 @@ export default class SummaryPlugin extends Plugin {
 		element.replaceWith(container);
 	}
 
-	getAllFiles() {
+	private getAllFiles() {
 		// Get files
 		const allFiles = this.app.vault.getMarkdownFiles();
 
@@ -186,7 +186,7 @@ export default class SummaryPlugin extends Plugin {
 	}
 
 	// TODO Implement support for `this.settings.listparagraph` (currently we assume it is always on)
-	getMatches(
+	private getMatches(
 		tags: string[],
 		fileMetadata: CachedMetadata,
 		fileContent: string
