@@ -147,6 +147,8 @@ export default class SummaryPlugin extends Plugin {
 									.trim();
 								if (content.startsWith("a")) {
 									return { ...output, sortDescending: false };
+								} else if (content.startsWith("d")) {
+									return { ...output, sortDescending: true };
 								}
 							}
 							return output;
@@ -190,8 +192,10 @@ export default class SummaryPlugin extends Plugin {
 		// Get files
 		const allFiles = this.app.vault.getMarkdownFiles();
 
+		const hasSortOverride = typeof sortDescendingOverride === "boolean";
+
 		const sortAscending =
-			sortDescendingOverride === true ||
+			(hasSortOverride && sortDescendingOverride === false) ||
 			this.settings.sortDescending === false;
 
 		if (sortAscending) {
