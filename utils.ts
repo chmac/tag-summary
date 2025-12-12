@@ -1,4 +1,4 @@
-import { type Match } from "main";
+import type { Match } from "main";
 import { CachedMetadata, ListItemCache, TagCache } from "obsidian";
 
 export function getLines(
