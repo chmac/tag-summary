@@ -221,9 +221,22 @@ export default class SummaryPlugin extends Plugin {
 			return getMatchAndChildren(tagCache, lines, fileMetadata.listItems);
 		});
 
-		// TODO Deduplicate `matchingSections`
+		const uniqueMatchingSections = matchingSections.reduce<Match[]>(
+			(output, item) => {
+				if (
+					!output.some(
+						(existingItem) =>
+							existingItem.startLine === item.startLine
+					)
+				) {
+					return output.concat(item);
+				}
+				return output;
+			},
+			[]
+		);
 
-		return matchingSections;
+		return uniqueMatchingSections;
 	}
 
 	createSummaryMarkdownSegment({
