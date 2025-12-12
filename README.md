@@ -1,5 +1,11 @@
 # Tag Summary
 
+> This is a fork of the original plugin.
+> Some features have been disabled. The core logic was rewritten to use
+> Obsidian's native APIs for finding tags. That means it correctly handles space
+> indented lists, and it's tag finding will be more reliable. Sort order was
+> also added. But include / exclude, and other settings were removed.
+
 This is a plugin for [Obsidian](https://obsidian.md).
 
 Tag Summary creates summaries with paragraphs or blocks of text that share the same tag(s). This plugin scans your files looking for blocks of text (text separated by empty lines) and creates a summary with all the blocks that contain the specified tag(s). For example, if you have the following paragraphs in your notes:
