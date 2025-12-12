@@ -71,5 +71,16 @@ export class SummarySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		new Setting(containerEl)
+			.setName("Sort descending?")
+			.setDesc("Sort files in descending alphabetical order.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.sortDescending)
+					.onChange(async (value) => {
+						this.plugin.settings.sortDescending = value;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }

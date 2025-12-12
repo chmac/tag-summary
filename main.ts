@@ -23,6 +23,7 @@ interface SummarySettings {
 	removetags: boolean;
 	listparagraph: boolean;
 	includechildren: boolean;
+	sortDescending: boolean;
 }
 const DEFAULT_SETTINGS: Partial<SummarySettings> = {
 	includecallout: true,
@@ -30,6 +31,7 @@ const DEFAULT_SETTINGS: Partial<SummarySettings> = {
 	removetags: false,
 	listparagraph: true,
 	includechildren: true,
+	sortDescending: true,
 };
 export default class SummaryPlugin extends Plugin {
 	settings: SummarySettings;
