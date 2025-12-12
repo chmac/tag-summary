@@ -1,7 +1,21 @@
 import { Console } from "console";
-import { Editor, Plugin, MarkdownRenderer, getAllTags, TFile } from "obsidian";
+import {
+	Editor,
+	Plugin,
+	MarkdownRenderer,
+	getAllTags,
+	TFile,
+	CachedMetadata,
+} from "obsidian";
 import { SummarySettingTab } from "./settings";
 import { SummaryModal } from "./summarytags";
+import { getLines, getMatchAndChildren } from "utils";
+
+export type Match = {
+	startLine: number;
+	endLine: number;
+	content: string;
+};
 
 interface SummarySettings {
 	includecallout: boolean;
@@ -138,8 +152,157 @@ export default class SummaryPlugin extends Plugin {
 		element.replaceWith(container);
 	}
 
-	// Load the blocks and create the summary
+	// TODO Implement support for `this.settings.listparagraph` (currently we assume it is always on)
+	getMatches(
+		tags: string[],
+		fileMetadata: CachedMetadata,
+		fileContent: string
+	): Match[] {
+		if (typeof fileMetadata.tags === "undefined") {
+			return [];
+		}
+
+		const lines = fileContent.split("\n");
+
+		const matchingTags = fileMetadata.tags.filter(({ tag }) =>
+			tags.includes(tag)
+		);
+
+		// NOTE: If a parent and child list item both have the tag, then it will
+		// appear twice in the results
+		const matchingSections = matchingTags.map((tagCache) => {
+			const startLine = tagCache.position.start.line;
+			const endLine = tagCache.position.end.line;
+
+			if (
+				!this.settings.includechildren ||
+				typeof fileMetadata.listItems === "undefined" ||
+				fileMetadata.listItems.length === 0
+			) {
+				return getLines(lines, startLine, endLine);
+			}
+
+			// NOTE: See docs on ListItemCache.parent here:
+			// https://docs.obsidian.md/Reference/TypeScript+API/ListItemCache/parent
+
+			return getMatchAndChildren(tagCache, lines, fileMetadata.listItems);
+		});
+
+		// TODO Deduplicate `matchingSections`
+
+		return matchingSections;
+	}
+
+	createSummaryMarkdownSegment({
+		file,
+		matches,
+	}: {
+		file: TFile;
+		matches: Match[];
+	}): string {
+		return matches
+			.map(
+				(match) =>
+					`Source: ${this.app.fileManager.generateMarkdownLink(
+						file,
+						this.app.workspace.getActiveFile()!.path
+					)}\n\n${match.content}\n`
+			)
+			.join("\n");
+	}
+
 	async createSummary(
+		element: HTMLElement,
+		tags: string[],
+		include: string[],
+		exclude: string[],
+		filePath: string
+	) {
+		const validTags = tags.concat(include); // All the tags selected by the user
+
+		// Get files
+		const allFiles = this.app.vault.getMarkdownFiles();
+
+		// Filter files
+		const listFiles = allFiles.filter((file) => {
+			// Remove files that do not contain the tags selected by the user
+			const cache = this.app.metadataCache.getFileCache(file);
+			const tagsInFile = getAllTags(cache);
+
+			if (validTags.some((value) => tagsInFile.includes(value))) {
+				return true;
+			}
+			return false;
+		});
+
+		// Sort files alphabetically
+		listFiles.sort((file1, file2) => {
+			if (file1.path < file2.path) {
+				return -1;
+			} else if (file1.path > file2.path) {
+				return 1;
+			} else {
+				return 0;
+			}
+		});
+
+		const fileMatchesWithUndefineds = await Promise.all(
+			listFiles.map(async (file) => {
+				const fileMetadata = await this.app.metadataCache.getFileCache(
+					file
+				);
+
+				if (
+					fileMetadata === null ||
+					typeof fileMetadata.tags === "undefined"
+				) {
+					// This is unexpected because this file should exist
+					console.error(
+						`#G1mpFA Failed to fetch metadata or tags for file ${file}`
+					);
+					return;
+				}
+
+				const fileContents = await this.app.vault.cachedRead(file);
+
+				const matches = this.getMatches(
+					validTags,
+					fileMetadata,
+					fileContents
+				);
+
+				return {
+					file,
+					matches,
+				};
+			})
+		);
+
+		const fileMatches = fileMatchesWithUndefineds.filter(
+			(value) => typeof value !== "undefined"
+		);
+
+		const summary = fileMatches
+			.map((record) => this.createSummaryMarkdownSegment(record))
+			.join("\n");
+
+		// Add Summary
+		if (summary != "") {
+			const summaryContainer = createEl("div");
+			await MarkdownRenderer.renderMarkdown(
+				summary,
+				summaryContainer,
+				this.app.workspace.getActiveFile()?.path,
+				null
+			);
+			element.replaceWith(summaryContainer);
+		} else {
+			this.createEmptySummary(element);
+		}
+	}
+
+	// Load the blocks and create the summary
+	async createSummaryOriginal(
 		element: HTMLElement,
 		tags: string[],
 		include: string[],
