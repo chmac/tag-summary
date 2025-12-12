@@ -12,6 +12,7 @@
 		"sourceType": "module"
 	},
 	"rules": {
+		"@typescript-eslint/no-non-null-assertion": false,
 		"@typescript-eslint/no-unused-vars": ["error", { "args": "none" }],
 		"@typescript-eslint/ban-ts-comment": "off",
 		"no-prototype-builtins": "off",
