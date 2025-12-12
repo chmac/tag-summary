@@ -39,3 +39,18 @@ tags: #children
 ```add-summary
 tags: #double 
 ```
+
+---
+
+## Only Daily/
+
+```add-summary
+tags: #everyday
+folder: Daily/
+```
+
+## All everday
+
+```add-summary
+tags: #everyday
+```

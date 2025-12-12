@@ -1,0 +1,1 @@
+This is not a note in Daily/ and yet it still has the #everyday tag.
