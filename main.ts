@@ -72,12 +72,13 @@ export default class SummaryPlugin extends Plugin {
 				const lines = source
 					.split("\n")
 					.filter((row) => row.length > 0);
-				const { tags, include, exclude, sortDescending } =
+				const { tags, include, exclude, sortDescending, folders } =
 					lines.reduce<{
 						tags: string[];
 						include: string[];
 						exclude: string[];
 						sortDescending?: boolean;
+						folders: string[];
 					}>(
 						(output, line) => {
 							// Check if the line specifies the tags (OR)
@@ -152,6 +153,17 @@ export default class SummaryPlugin extends Plugin {
 									return { ...output, sortDescending: true };
 								}
 							}
+							// Check if there is a line that specifies folders
+							// NOTE: This line can occur multiple times
+							if (line.match(/^\s*folder:/)) {
+								const content = line
+									.replace(/^\s*folder:/, "")
+									.trim();
+								return {
+									...output,
+									folders: output.folders.concat(content),
+								};
+							}
 							return output;
 						},
 						{
@@ -159,6 +171,7 @@ export default class SummaryPlugin extends Plugin {
 							include: [],
 							exclude: [],
 							sortDescending: undefined,
+							folders: [],
 						}
 					);
 
@@ -169,6 +182,7 @@ export default class SummaryPlugin extends Plugin {
 						tags,
 						include,
 						exclude,
+						folders,
 						ctx.sourcePath,
 						sortDescending
 					);
@@ -189,9 +203,16 @@ export default class SummaryPlugin extends Plugin {
 		element.replaceWith(container);
 	}
 
-	private getAllFiles(sortDescendingOverride?: boolean) {
+	private getAllFiles(folders: string[], sortDescendingOverride?: boolean) {
 		// Get files
 		const allFiles = this.app.vault.getMarkdownFiles();
+
+		const filesInMatchingFolders =
+			folders.length === 0
+				? allFiles
+				: allFiles.filter((file) =>
+						folders.some((folder) => file.path.startsWith(folder))
+				  );
 
 		const hasSortOverride = typeof sortDescendingOverride === "boolean";
 
@@ -201,7 +222,7 @@ export default class SummaryPlugin extends Plugin {
 
 		if (sortAscending) {
 			// Sort files alphabetically
-			allFiles.sort((file1, file2) => {
+			filesInMatchingFolders.sort((file1, file2) => {
 				if (file1.path < file2.path) {
 					return -1;
 				} else if (file1.path > file2.path) {
@@ -212,7 +233,7 @@ export default class SummaryPlugin extends Plugin {
 			});
 		} else {
 			// Sort files alphabetically IN REVERSE
-			allFiles.sort((file1, file2) => {
+			filesInMatchingFolders.sort((file1, file2) => {
 				if (file1.path > file2.path) {
 					return -1;
 				} else if (file1.path < file2.path) {
@@ -223,7 +244,7 @@ export default class SummaryPlugin extends Plugin {
 			});
 		}
 
-		return allFiles;
+		return filesInMatchingFolders;
 	}
 
 	// TODO Implement support for `this.settings.listparagraph` (currently we assume it is always on)
@@ -314,12 +335,13 @@ export default class SummaryPlugin extends Plugin {
 		tags: string[],
 		includeTags: string[],
 		excludeTags: string[],
+		folders: string[],
 		filePath: string,
 		sortDescending?: boolean
 	) {
 		const validTags = tags.concat(includeTags); // All the tags selected by the user
 
-		const allFiles = this.getAllFiles(sortDescending);
+		const allFiles = this.getAllFiles(folders, sortDescending);
 
 		// Filter files
 		const listFiles = allFiles.filter((file) => {

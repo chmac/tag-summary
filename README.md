@@ -6,6 +6,28 @@
 > indented lists, and it's tag finding will be more reliable. Sort order was
 > also added. But include / exclude, and other settings were removed.
 
+## Parameters
+
+````markdown
+```add-summary
+tags: #daily
+folder: daily/
+folder: daily-archive/
+```
+````
+
+-   `tags: #foo #bar`
+    -   These tags will match OR, so any of the tags is sufficient to match.
+-   `sort: ascending`
+    -   Sort the results in ascending alphabetical order.
+    -   The default is descending.
+    -   This value can also be `a` or `asc`.
+-   `folder: path/`
+    -   This can be included multiple times, they are AND matched
+    -   The value is compared against the beginning of the path for each match
+
+## Original Docs
+
 This is a plugin for [Obsidian](https://obsidian.md).
 
 Tag Summary creates summaries with paragraphs or blocks of text that share the same tag(s). This plugin scans your files looking for blocks of text (text separated by empty lines) and creates a summary with all the blocks that contain the specified tag(s). For example, if you have the following paragraphs in your notes:
@@ -72,22 +94,6 @@ include: #chapter3 #chapter4
 exclude: #crazy
 ```
 ````
-
-## Parameters
-
--   `tags: #foo #bar`
-    -   These tags will match OR, so any of the tags is sufficient to match.
--   `sort: ascending`
-    -   Sort the results in ascending alphabetical order.
-    -   The default is descending.
-    -   This value can also be `a` or `asc`.
-
-The following are in the docs but **are not currently implemented in this fork**.
-
--   `include: #foo #bar`
-    -   All of these tags must match, so they match AND.
--   `exclude: #baz`
-    -   All of these tags must not be present, so they match NOT
 
 ## Command to Add a Summary
 
