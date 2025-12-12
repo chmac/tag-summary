@@ -6,6 +6,7 @@ import {
 	getAllTags,
 	TFile,
 	CachedMetadata,
+	Component,
 } from "obsidian";
 import { SummarySettingTab } from "./settings";
 import { SummaryModal } from "./summarytags";
@@ -388,11 +389,13 @@ export default class SummaryPlugin extends Plugin {
 		// Add Summary
 		if (summary != "") {
 			const summaryContainer = createEl("div");
-			await MarkdownRenderer.renderMarkdown(
+			const component = new Component();
+			await MarkdownRenderer.render(
+				this.app,
 				summary,
 				summaryContainer,
-				this.app.workspace.getActiveFile()?.path,
-				null
+				filePath,
+				component
 			);
 			element.replaceWith(summaryContainer);
 		} else {
@@ -416,8 +419,14 @@ export default class SummaryPlugin extends Plugin {
 		// Filter files
 		listFiles = listFiles.filter((file) => {
 			// Remove files that do not contain the tags selected by the user
-			const cache = app.metadataCache.getFileCache(file);
+			const cache = this.app.metadataCache.getFileCache(file);
+			if (cache === null) {
+				return false;
+			}
 			const tagsInFile = getAllTags(cache);
+			if (tagsInFile === null) {
+				return false;
+			}
 
 			if (validTags.some((value) => tagsInFile.includes(value))) {
 				return true;
@@ -592,8 +601,8 @@ export default class SummaryPlugin extends Plugin {
 			await MarkdownRenderer.renderMarkdown(
 				summary,
 				summaryContainer,
-				this.app.workspace.getActiveFile()?.path,
-				null
+				filePath,
+				new Component()
 			);
 			element.replaceWith(summaryContainer);
 		} else {
