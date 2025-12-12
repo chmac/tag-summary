@@ -28,6 +28,7 @@ Summaries are added to a note with a code block and the **add-summary** identifi
 ````markdown
 ```add-summary
 tags: #chapter1
+sort: ascending
 ```
 ````
 
@@ -66,15 +67,31 @@ exclude: #crazy
 ```
 ````
 
+## Parameters
+
+-   `tags: #foo #bar`
+    -   These tags will match OR, so any of the tags is sufficient to match.
+-   `sort: ascending`
+    -   Sort the results in ascending alphabetical order.
+    -   The default is descending.
+    -   This value can also be `a` or `asc`.
+
+The following are in the docs but **are not currently implemented in this fork**.
+
+-   `include: #foo #bar`
+    -   All of these tags must match, so they match AND.
+-   `exclude: #baz`
+    -   All of these tags must not be present, so they match NOT
+
 ## Command to Add a Summary
 
 The plugin includes the Add Summary command to add a summary to a note.
 
-- Open the note where you want to include the summary.
-- Move the cursor to the position where you want to add the summary.
-- Press Command+P (Mac) or Control+P (Windows) to open the Command palette. (or drag down the note on a mobile device)
-- Search for the **Tag Summary: Add Summary** command and click on it.
-- On the popup window, select the tags you want to include and exclude to create the summary and press the Add Summary button.
+-   Open the note where you want to include the summary.
+-   Move the cursor to the position where you want to add the summary.
+-   Press Command+P (Mac) or Control+P (Windows) to open the Command palette. (or drag down the note on a mobile device)
+-   Search for the **Tag Summary: Add Summary** command and click on it.
+-   On the popup window, select the tags you want to include and exclude to create the summary and press the Add Summary button.
 
 After this, your note should include a code block like the examples above. The Add Summary command allows you to select only one tag to include and another to exclude, but you can manually add all the tags you want separated by a space, as in **tags: #chapter1 #chapter2**.
 
@@ -82,14 +99,14 @@ After this, your note should include a code block like the examples above. The A
 
 The plugin includes the following three options to configure the style of the summary.
 
-- Show Callouts: Shows each block of text inside a callout box (default). If disabled, the blocks are displayed as plain text.
-- Show Link: Includes a link at the top to open the note where the paragraph was taken from.
-- Remove Tags: Removes the original tags from the text.
+-   Show Callouts: Shows each block of text inside a callout box (default). If disabled, the blocks are displayed as plain text.
+-   Show Link: Includes a link at the top to open the note where the paragraph was taken from.
+-   Remove Tags: Removes the original tags from the text.
 
 There are also two more options to determine how the plugin will process lists. If the options are enabled, the plugin will process each item of a list independently and include in the summary only the items that match the tags. If you want the plugin to process the entire list as a block of text, you can disable this options.
 
-- List Items: Include only the items of a list that contain the tag(s), not the entire list.
-- Include Child Items: Include the child items of a list.
+-   List Items: Include only the items of a list that contain the tag(s), not the entire list.
+-   Include Child Items: Include the child items of a list.
 
 ## Usage
 
@@ -97,8 +114,8 @@ This plugin does not affect the way Obsidian, links, and tags work. You can stil
 
 When structuring your notes, please consider the following:
 
-- The plugin considers a block of text to be all the text between empty lines. If you add an empty line in the middle of a paragraph or a block of text, the plugin will consider that as two different blocks.
-- Tags can be specified in any position of the paragraph or block of text, even in a new line at the end, as long as there are no empty lines in between.
+-   The plugin considers a block of text to be all the text between empty lines. If you add an empty line in the middle of a paragraph or a block of text, the plugin will consider that as two different blocks.
+-   Tags can be specified in any position of the paragraph or block of text, even in a new line at the end, as long as there are no empty lines in between.
 
 ## Safety
 
@@ -113,4 +130,3 @@ Use this plugin at your own risk.
 
 I created this plugin for personal use. I will try to post updates from time to time. If you find a bug, you can contact me through my website:
 [www.jdgauchat.com](https://www.jdgauchat.com/)
-

@@ -67,66 +67,97 @@ export default class SummaryPlugin extends Plugin {
 		this.registerMarkdownCodeBlockProcessor(
 			"add-summary",
 			async (source, el, ctx) => {
-				// Initialize tag list
-				let tags: string[] = Array();
-				let include: string[] = Array();
-				let exclude: string[] = Array();
-
 				// Process rows inside codeblock
-				const rows = source.split("\n").filter((row) => row.length > 0);
-				rows.forEach((line) => {
-					// Check if the line specifies the tags (OR)
-					if (line.match(/^\s*tags:[\p{L}0-9_\-/# ]+$/gu)) {
-						const content = line.replace(/^\s*tags:/, "").trim();
+				const lines = source
+					.split("\n")
+					.filter((row) => row.length > 0);
+				const { tags, include, exclude, sortDescending } =
+					lines.reduce<{
+						tags: string[];
+						include: string[];
+						exclude: string[];
+						sortDescending?: boolean;
+					}>(
+						(output, line) => {
+							// Check if the line specifies the tags (OR)
+							if (line.match(/^\s*tags:[\p{L}0-9_\-/# ]+$/gu)) {
+								const content = line
+									.replace(/^\s*tags:/, "")
+									.trim();
 
-						// Get the list of valid tags and assign them to the tags variable
-						let list = content
-							.split(/\s+/)
-							.map((tag) => tag.trim());
-						list = list.filter((tag) => {
-							if (tag.match(/^#[\p{L}]+[^#]*$/u)) {
-								return true;
-							} else {
-								return false;
+								// Get the list of valid tags and assign them to the tags variable
+								let list = content
+									.split(/\s+/)
+									.map((tag) => tag.trim());
+								list = list.filter((tag) => {
+									if (tag.match(/^#[\p{L}]+[^#]*$/u)) {
+										return true;
+									} else {
+										return false;
+									}
+								});
+								return { ...output, tags: list };
 							}
-						});
-						tags = list;
-					}
-					// Check if the line specifies the tags to include (AND)
-					if (line.match(/^\s*include:[\p{L}0-9_\-/# ]+$/gu)) {
-						const content = line.replace(/^\s*include:/, "").trim();
+							// Check if the line specifies the tags to include (AND)
+							if (
+								line.match(/^\s*include:[\p{L}0-9_\-/# ]+$/gu)
+							) {
+								const content = line
+									.replace(/^\s*include:/, "")
+									.trim();
 
-						// Get the list of valid tags and assign them to the include variable
-						let list = content
-							.split(/\s+/)
-							.map((tag) => tag.trim());
-						list = list.filter((tag) => {
-							if (tag.match(/^#[\p{L}]+[^#]*$/u)) {
-								return true;
-							} else {
-								return false;
+								// Get the list of valid tags and assign them to the include variable
+								let list = content
+									.split(/\s+/)
+									.map((tag) => tag.trim());
+								list = list.filter((tag) => {
+									if (tag.match(/^#[\p{L}]+[^#]*$/u)) {
+										return true;
+									} else {
+										return false;
+									}
+								});
+								return { ...output, include: list };
 							}
-						});
-						include = list;
-					}
-					// Check if the line specifies the tags to exclude (NOT)
-					if (line.match(/^\s*exclude:[\p{L}0-9_\-/# ]+$/gu)) {
-						const content = line.replace(/^\s*exclude:/, "").trim();
+							// Check if the line specifies the tags to exclude (NOT)
+							if (
+								line.match(/^\s*exclude:[\p{L}0-9_\-/# ]+$/gu)
+							) {
+								const content = line
+									.replace(/^\s*exclude:/, "")
+									.trim();
 
-						// Get the list of valid tags and assign them to the exclude variable
-						let list = content
-							.split(/\s+/)
-							.map((tag) => tag.trim());
-						list = list.filter((tag) => {
-							if (tag.match(/^#[\p{L}]+[^#]*$/u)) {
-								return true;
-							} else {
-								return false;
+								// Get the list of valid tags and assign them to the exclude variable
+								let list = content
+									.split(/\s+/)
+									.map((tag) => tag.trim());
+								list = list.filter((tag) => {
+									if (tag.match(/^#[\p{L}]+[^#]*$/u)) {
+										return true;
+									} else {
+										return false;
+									}
+								});
+								return { ...output, exclude: list };
 							}
-						});
-						exclude = list;
-					}
-				});
+							// Check if there is a line that specifies sort order
+							if (line.match(/^\s*sort:/)) {
+								const content = line
+									.replace(/^\s*sort:/, "")
+									.trim();
+								if (content.startsWith("a")) {
+									return { ...output, sortDescending: false };
+								}
+							}
+							return output;
+						},
+						{
+							tags: [],
+							include: [],
+							exclude: [],
+							sortDescending: undefined,
+						}
+					);
 
 				// Create summary only if the user specified some tags
 				if (tags.length > 0 || include.length > 0) {
@@ -135,7 +166,8 @@ export default class SummaryPlugin extends Plugin {
 						tags,
 						include,
 						exclude,
-						ctx.sourcePath
+						ctx.sourcePath,
+						sortDescending
 					);
 				} else {
 					this.createEmptySummary(el);
@@ -154,27 +186,31 @@ export default class SummaryPlugin extends Plugin {
 		element.replaceWith(container);
 	}
 
-	private getAllFiles() {
+	private getAllFiles(sortDescendingOverride?: boolean) {
 		// Get files
 		const allFiles = this.app.vault.getMarkdownFiles();
 
-		if (this.settings.sortDescending) {
-			// Sort files alphabetically IN REVERSE
+		const sortAscending =
+			sortDescendingOverride === true ||
+			this.settings.sortDescending === false;
+
+		if (sortAscending) {
+			// Sort files alphabetically
 			allFiles.sort((file1, file2) => {
-				if (file1.path > file2.path) {
+				if (file1.path < file2.path) {
 					return -1;
-				} else if (file1.path < file2.path) {
+				} else if (file1.path > file2.path) {
 					return 1;
 				} else {
 					return 0;
 				}
 			});
 		} else {
-			// Sort files alphabetically
+			// Sort files alphabetically IN REVERSE
 			allFiles.sort((file1, file2) => {
-				if (file1.path < file2.path) {
+				if (file1.path > file2.path) {
 					return -1;
-				} else if (file1.path > file2.path) {
+				} else if (file1.path < file2.path) {
 					return 1;
 				} else {
 					return 0;
@@ -273,11 +309,12 @@ export default class SummaryPlugin extends Plugin {
 		tags: string[],
 		includeTags: string[],
 		excludeTags: string[],
-		filePath: string
+		filePath: string,
+		sortDescending?: boolean
 	) {
 		const validTags = tags.concat(includeTags); // All the tags selected by the user
 
-		const allFiles = this.getAllFiles();
+		const allFiles = this.getAllFiles(sortDescending);
 
 		// Filter files
 		const listFiles = allFiles.filter((file) => {
