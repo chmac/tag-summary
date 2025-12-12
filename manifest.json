@@ -4,7 +4,7 @@
 	"version": "3.0.0",
 	"minAppVersion": "1.10.6",
 	"description": "This plugin creates summaries with paragraphs or blocks of text that share the same tag(s).",
-	"author": "J.D Gauchat",
-	"authorUrl": "https://www.jdgauchat.com",
+	"author": "chmac",
+	"authorUrl": "https://github.com/chmac/tag-summary",
 	"isDesktopOnly": false
 }
