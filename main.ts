@@ -207,16 +207,20 @@ export default class SummaryPlugin extends Plugin {
 			const startLine = tagCache.position.start.line;
 			const endLine = tagCache.position.end.line;
 
+			const showOnlyMatchingListItem =
+				this.settings.listparagraph && !this.settings.includechildren;
+
 			if (
-				!this.settings.includechildren ||
+				showOnlyMatchingListItem ||
 				typeof fileMetadata.listItems === "undefined" ||
 				fileMetadata.listItems.length === 0
 			) {
 				return getLines(lines, startLine, endLine);
 			}
 
-			// NOTE: See docs on ListItemCache.parent here:
-			// https://docs.obsidian.md/Reference/TypeScript+API/ListItemCache/parent
+			if (!this.settings.listparagraph) {
+				// TODO Return the whole block here
+			}
 
 			return getMatchAndChildren(tagCache, lines, fileMetadata.listItems);
 		});
@@ -239,19 +243,22 @@ export default class SummaryPlugin extends Plugin {
 		return uniqueMatchingSections;
 	}
 
-	createSummaryMarkdownSegment({
-		file,
-		matches,
-	}: {
-		file: TFile;
-		matches: Match[];
-	}): string {
+	private createSummaryMarkdownSegment(
+		filePath: string,
+		{
+			file,
+			matches,
+		}: {
+			file: TFile;
+			matches: Match[];
+		}
+	): string {
 		return matches
 			.map(
 				(match) =>
 					`Source: ${this.app.fileManager.generateMarkdownLink(
 						file,
-						this.app.workspace.getActiveFile()!.path
+						filePath
 					)}\n\n${match.content}\n`
 			)
 			.join("\n");
@@ -280,7 +287,7 @@ export default class SummaryPlugin extends Plugin {
 			return false;
 		});
 
-		const fileMatchesWithUndefineds = await Promise.all(
+		const maybeFileMatches = await Promise.all(
 			listFiles.map(async (file) => {
 				const fileMetadata = await this.app.metadataCache.getFileCache(
 					file
@@ -312,12 +319,14 @@ export default class SummaryPlugin extends Plugin {
 			})
 		);
 
-		const fileMatches = fileMatchesWithUndefineds.filter(
+		const fileMatches = maybeFileMatches.filter(
 			(value) => typeof value !== "undefined"
 		);
 
 		const summary = fileMatches
-			.map((record) => this.createSummaryMarkdownSegment(record))
+			.map((record) =>
+				this.createSummaryMarkdownSegment(filePath, record)
+			)
 			.join("\n");
 
 		// Add Summary
