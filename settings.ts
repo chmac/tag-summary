@@ -13,6 +13,7 @@ export class SummarySettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		/*
 		new Setting(containerEl)
 			.setName("Show Callouts")
 			.setDesc("Show the text inside callout blocks")
@@ -24,6 +25,8 @@ export class SummarySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		*/
+		/*
 		new Setting(containerEl)
 			.setName("Show Link")
 			.setDesc("Show link to original note")
@@ -35,6 +38,8 @@ export class SummarySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		*/
+		/*
 		new Setting(containerEl)
 			.setName("Remove Tags")
 			.setDesc("Remove tags from text")
@@ -46,7 +51,8 @@ export class SummarySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
-
+		*/
+		/*
 		new Setting(containerEl)
 			.setName("List Items")
 			.setDesc(
@@ -60,6 +66,7 @@ export class SummarySettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+		*/
 		new Setting(containerEl)
 			.setName("Include Child Items")
 			.setDesc("Include the child items of a list.")
