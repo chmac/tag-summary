@@ -154,6 +154,37 @@ export default class SummaryPlugin extends Plugin {
 		element.replaceWith(container);
 	}
 
+	getAllFiles() {
+		// Get files
+		const allFiles = this.app.vault.getMarkdownFiles();
+
+		if (this.settings.sortDescending) {
+			// Sort files alphabetically IN REVERSE
+			allFiles.sort((file1, file2) => {
+				if (file1.path > file2.path) {
+					return -1;
+				} else if (file1.path < file2.path) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
+		} else {
+			// Sort files alphabetically
+			allFiles.sort((file1, file2) => {
+				if (file1.path < file2.path) {
+					return -1;
+				} else if (file1.path > file2.path) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
+		}
+
+		return allFiles;
+	}
+
 	// TODO Implement support for `this.settings.listparagraph` (currently we assume it is always on)
 	getMatches(
 		tags: string[],
@@ -222,8 +253,7 @@ export default class SummaryPlugin extends Plugin {
 	) {
 		const validTags = tags.concat(include); // All the tags selected by the user
 
-		// Get files
-		const allFiles = this.app.vault.getMarkdownFiles();
+		const allFiles = this.getAllFiles();
 
 		// Filter files
 		const listFiles = allFiles.filter((file) => {
@@ -235,17 +265,6 @@ export default class SummaryPlugin extends Plugin {
 				return true;
 			}
 			return false;
-		});
-
-		// Sort files alphabetically
-		listFiles.sort((file1, file2) => {
-			if (file1.path < file2.path) {
-				return -1;
-			} else if (file1.path > file2.path) {
-				return 1;
-			} else {
-				return 0;
-			}
 		});
 
 		const fileMatchesWithUndefineds = await Promise.all(
