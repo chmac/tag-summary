@@ -320,7 +320,16 @@ export default class SummaryPlugin extends Plugin {
 		const listFiles = allFiles.filter((file) => {
 			// Remove files that do not contain the tags selected by the user
 			const cache = this.app.metadataCache.getFileCache(file);
+
+			if (cache === null) {
+				return false;
+			}
+
 			const tagsInFile = getAllTags(cache);
+
+			if (tagsInFile === null) {
+				return false;
+			}
 
 			if (validTags.some((value) => tagsInFile.includes(value))) {
 				return true;
