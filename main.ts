@@ -188,6 +188,8 @@ export default class SummaryPlugin extends Plugin {
 	// TODO Implement support for `this.settings.listparagraph` (currently we assume it is always on)
 	private getMatches(
 		tags: string[],
+		includeTags: string[],
+		excludeTags: string[],
 		fileMetadata: CachedMetadata,
 		fileContent: string
 	): Match[] {
@@ -204,6 +206,8 @@ export default class SummaryPlugin extends Plugin {
 		// NOTE: If a parent and child list item both have the tag, then it will
 		// appear twice in the results
 		const matchingSections = matchingTags.map((tagCache) => {
+			// TODO Implement includeTags and excludeTags here
+
 			const startLine = tagCache.position.start.line;
 			const endLine = tagCache.position.end.line;
 
@@ -267,11 +271,11 @@ export default class SummaryPlugin extends Plugin {
 	async createSummary(
 		element: HTMLElement,
 		tags: string[],
-		include: string[],
-		exclude: string[],
+		includeTags: string[],
+		excludeTags: string[],
 		filePath: string
 	) {
-		const validTags = tags.concat(include); // All the tags selected by the user
+		const validTags = tags.concat(includeTags); // All the tags selected by the user
 
 		const allFiles = this.getAllFiles();
 
@@ -308,6 +312,8 @@ export default class SummaryPlugin extends Plugin {
 
 				const matches = this.getMatches(
 					validTags,
+					includeTags,
+					excludeTags,
 					fileMetadata,
 					fileContents
 				);
